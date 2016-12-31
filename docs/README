@@ -1,0 +1,89 @@
+fractureFoam v1 - 12/30/2016
+
+This is a 2D code to calculate the evolution of the fracture aperture. 
+It is designed to have user programmable constitutive models, examples
+of which are in the Models subdirectory. It was derived from the
+combined code in porousFoam v2.
+
+It supports a single mineral and multiple aqueous species; the
+algorithm is explained in rates.pdf. fractureFoam is similar to my
+old code dissol, but faster (3X) and with better numerics
+for the concentration field (conservative flux); it can also run in
+parallel.
+
+The external pressure gradient should always be in the x direction.
+There are some sample cases in fractureCases, which has its own README.
+The sole input field is the initial aperture H, although other fields
+(p, U, C) need to be initialized and their boundary conditions defined.
+
+Version numbering follows a traditional pattern: the first digit
+indicates a major change with new functionality and possible changes
+in input/output; the second digit indicates minor improvements in
+functionality, code cleanup, and bugfixes; the third digit is for
+bug fixes.
+
+------------------------------------------------------------------------
+
+Changelog
+
+
+
+------------------------------------------------------------------------
+
+Fields
+
+There are many fields in this code - see createFields.H
+The primary fields p, U, Cx, H require input files (see 0org).
+The code allows for a number of aqueous concentrations (Cx).
+
+The secondary fields are created within the code; they don't require
+input files. The secondary fields include pointers to multiple fields:
+Rx (reaction rates) and dRx (rate constants)
+In addition there is Kinv (inverse permeability), R (species rate),
+dR (species rate constant), and dispersion D*H 
+
+------------------------------------------------------------------------
+
+Scalings
+
+Pressure: unscaled
+Velocity: Scaled so the mean velocity is 1 at t=0.
+With QCON=false, the pressure drop remains constant.
+With QCON=true, the flow rate is rescaled so <U> is always 1.
+The (scaled) total flow rate is always limited to Qmax.
+Volume flux (phi): Scaled with U.
+Concentration: Scaled to a reference concentration, typically C_in.
+The dimensionless time is k0*gamma*t/h_0. The inlet aperture at
+fixed C_in=1 grows as  h_inlet(t) = (sqrt(1+G(G+2)+4Gt)-1)/G where 
+G = 2k0h0/DSh.
+
+------------------------------------------------------------------------
+
+Constitutive models
+
+The reaction rates require a constitutive model
+The user is expected to create their own model functions named
+reacModel.H. Simple examples are in the Models subdirectory.
+These functions must also calculate the auxiliary fields dR
+(reacModel.H).
+
+The reaction model (reacModel.H) needs to include a table of
+stoichiometry numbers as well as the rates and derivatives for each
+reaction. It needs to be programmed using autoPointers (CList etc.)
+to allow for multiple fields. There are example files in the Models
+directory.
+
+Notes:
+1) the output velocity field is calculated from the pressure gradient
+and it not conservative. You can sometimes see a discontinuity in the
+velocity near the inlet. However, the convective flux in the
+concentration solver is calculated using the surface volume flux
+field (phi) and is conservative.
+2) fractureFOAM now uses a 2nd order (midpoint) time update.
+3) the reaction rate should be a smooth function of C (see reacNonLin.H)
+4) if individual elements are accessed (e.g. in reacNonLin.H) then
+the method correctBoundaryConditions() must be applied to R and dR
+5) a two species reaction model is in ../porousFoam/Models/reacRoll.H
+
+
+Last modified 12/30/2016
