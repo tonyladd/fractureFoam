@@ -50,8 +50,6 @@ int main(int argc, char *argv[])
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-    steadyStateControl simple(mesh);        // SIMPLE: no time update
-
     Info << "Start" << nl;
 
     if (QCON)
