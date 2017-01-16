@@ -36,7 +36,6 @@ Description
 #include "fvCFD.H"
 #include "pointPatchField.H"
 #include "fvMesh.H"
-#include "steadyStateControl.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
